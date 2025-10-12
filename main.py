@@ -1604,5 +1604,4 @@ async def start_health_server():
 
 if __name__ == "__main__":
     print("Bot ishga tushdi...")
-    asyncio.run(main())
     asyncio.run(dp.start_polling(bot))
