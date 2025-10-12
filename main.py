@@ -1589,21 +1589,21 @@ async def general_message_handler(m: Message, state: FSMContext):
 # -----------------------------
 # START POLLING
 # -----------------------------
-async def start_health_server():
-    async def health(request):
-        return web.Response(text="ok")
-    app = web.Application()
-    app.router.add_get("/", health)
-    runner = web.AppRunner(app)
-    await runner.setup()
-    port = int(os.environ.get("PORT", 8000))
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-    while True:
-        await asyncio.sleep(3600)
+async def webhook():
+    data = request.json
+    update = types.Update(**data)
+    await dp.feed_update(bot, update)
+    return "ok", 200
 
-if __name__ == "__main__":
-    print("Bot ishga tushdi...")
+if __name__ == '__main__':
+    import nest_asyncio
+    nest_asyncio.apply()
+    import asyncio
+
+    async def on_startup():
+        await bot.set_webhook("https://rekchiai.onrender.com/webhook")
+
+    asyncio.get_event_loop().run_until_complete(on_startup())
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
     asyncio.run(dp.start_polling(bot))
