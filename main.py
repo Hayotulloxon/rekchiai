@@ -388,7 +388,7 @@ async def cmd_start(m: Message, state: FSMContext):
         users[uid] = {
             "refs": [], "confirmed": False, "captcha": "", "hashtags": [],
             "await_video": False, "views": 0, "username": username, "balance": 0,
-            "intro_video_sent": False, "bonus_refs": 0, "ref_of": None
+            "intro_video_sent": False, "bonus_refs": 0, "ref_of": None  # 👈 Yangi maydon
         }
     else:
         users[uid]["username"] = username
@@ -396,10 +396,9 @@ async def cmd_start(m: Message, state: FSMContext):
     # Referalni faqat BIRINCHI marta qo'shish
     if ref and ref != uid and not users[uid].get("ref_of"):
         users[uid]["ref_of"] = ref
-        if ref in users:
-            if uid not in users[ref].get("refs", []):
-                users[ref].setdefault("refs", []).append(uid)
-                save_json(USERS_FILE, users)
+        if ref in users and uid not in users[ref].get("refs", []):
+            users[ref].setdefault("refs", []).append(uid)
+            save_json(USERS_FILE, users)
 
     save_json(USERS_FILE, users)
 
@@ -468,6 +467,11 @@ async def check_captcha(m: Message, state: FSMContext):
 # -----------------------------
 # XARID QILISH MENYUSI — TO'G'RI ISHLASHI UCHUN
 # -----------------------------
+def create_purchase_kb(views: int):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🛒 Xarid qilish", callback_data=f"buy_paid_{views}")]
+    ])
+
 @dp.message(F.text == "💳 Xarid qilish")
 async def buy_menu(m: Message):
     uid = str(m.from_user.id)
@@ -477,42 +481,42 @@ async def buy_menu(m: Message):
     await m.answer("🛒 Xarid qilish uchun quyidagilardan birini tanlang:", reply_markup=get_xarid_keyboard())
 
 @dp.message(F.text == "🛒 1K sotib olish")
-async def buy_1k_paid(m: Message, state: FSMContext):
+async def buy_1k_paid(m: Message):
     uid = str(m.from_user.id)
     if not users.get(uid, {}).get("confirmed", False):
         await m.answer("❗ Avval botdan foydalanishni tasdiqlang.")
         return
     price = calculate_price(1000)
     await m.answer(
-        f"🛒 1K ko'rish narxi: {price} so'm\n"
-        f"To'lov uchun balansni to'ldiring yoki admin bilan bog'laning.",
-        reply_markup=get_reply_keyboard(m.from_user.username or "")
+        f"🛒 1K ko'rish narxi: <b>{price}</b> so'm",
+        parse_mode="HTML",
+        reply_markup=create_purchase_kb(1000)
     )
 
 @dp.message(F.text == "🛒 5K sotib olish")
-async def buy_5k_paid(m: Message, state: FSMContext):
+async def buy_5k_paid(m: Message):
     uid = str(m.from_user.id)
     if not users.get(uid, {}).get("confirmed", False):
         await m.answer("❗ Avval botdan foydalanishni tasdiqlang.")
         return
     price = calculate_price(5000)
     await m.answer(
-        f"🛒 5K ko'rish narxi: {price} so'm\n"
-        f"To'lov uchun balansni to'ldiring yoki admin bilan bog'laning.",
-        reply_markup=get_reply_keyboard(m.from_user.username or "")
+        f"🛒 5K ko'rish narxi: <b>{price}</b> so'm",
+        parse_mode="HTML",
+        reply_markup=create_purchase_kb(5000)
     )
 
 @dp.message(F.text == "🛒 10K sotib olish")
-async def buy_10k_paid(m: Message, state: FSMContext):
+async def buy_10k_paid(m: Message):
     uid = str(m.from_user.id)
     if not users.get(uid, {}).get("confirmed", False):
         await m.answer("❗ Avval botdan foydalanishni tasdiqlang.")
         return
     price = calculate_price(10000)
     await m.answer(
-        f"🛒 10K ko'rish narxi: {price} so'm\n"
-        f"To'lov uchun balansni to'ldiring yoki admin bilan bog'laning.",
-        reply_markup=get_reply_keyboard(m.from_user.username or "")
+        f"🛒 10K ko'rish narxi: <b>{price}</b> so'm",
+        parse_mode="HTML",
+        reply_markup=create_purchase_kb(10000)
     )
 
 @dp.message(F.text == "🔢 Ko'rish sonini kiritish 💰")
@@ -521,11 +525,11 @@ async def buy_custom_paid(m: Message, state: FSMContext):
     if not users.get(uid, {}).get("confirmed", False):
         await m.answer("❗ Avval botdan foydalanishni tasdiqlang.")
         return
-    await m.answer("Necha ko'rish sotib olmoqchisiz? (faqat raqam kiriting):")
+    await m.answer("Necha ko'rish sotib olmoqchisiz? (faqat raqam kiriting, minimal: 1000):")
     await state.set_state(S.waiting_for_purchase_views)
 
 @dp.message(S.waiting_for_purchase_views)
-async def process_buy_custom_paid(m: Message, state: FSMContext):
+async def process_custom_paid(m: Message, state: FSMContext):
     if not m.text or not m.text.strip().isdigit():
         await m.answer("🔢 Faqat son kiriting! Masalan: 15000")
         return
@@ -536,11 +540,53 @@ async def process_buy_custom_paid(m: Message, state: FSMContext):
         await state.clear()
         return
     await m.answer(
-        f"🛒 {views} ta ko'rish narxi: {price} so'm\n"
-        f"To'lov uchun balansni to'ldiring yoki admin bilan bog'laning.",
-        reply_markup=get_reply_keyboard(m.from_user.username or "")
+        f"🛒 {views} ta ko'rish narxi: <b>{price}</b> so'm",
+        parse_mode="HTML",
+        reply_markup=create_purchase_kb(views)
     )
     await state.clear()
+
+@dp.callback_query(F.data.startswith("buy_paid_"))
+async def handle_paid_purchase(c: types.CallbackQuery, state: FSMContext):
+    uid = str(c.from_user.id)
+    username = c.from_user.username or ""
+    try:
+        views = int(c.data.split("_")[2])
+    except (IndexError, ValueError):
+        await c.answer("❌ Noto'g'ri so'rov!")
+        return
+
+    price = calculate_price(views)
+    if price == -1:
+        await c.answer("❌ Noto'g'ri ko'rish miqdori!")
+        return
+
+    balance = users.get(uid, {}).get("balance", 0)
+    if balance < price:
+        await c.answer("❌ Balans yetarli emas!", show_alert=True)
+        return
+
+    # Balansdan pulni ayrish
+    users[uid]["balance"] -= price
+    save_json(USERS_FILE, users)
+
+    # Foydalanuvchiga heshteglar va video so'rash
+    hs = get_hashtags(views)
+    users[uid]["hashtags"] = hs
+    users[uid]["await_video"] = True
+    users[uid]["views"] = views
+    save_json(USERS_FILE, users)
+
+    ht = "\n".join(hs)
+    await c.message.edit_text(
+        f"✅ To'lov muvaffaqiyatli amalga oshirildi!\n"
+        f"💰 {price} so'm balansingizdan ayrildi.\n\n"
+        f"🎯 {views} ta ko'rish uchun mos heshteglar:\n<pre>{ht}</pre>\n"
+        f"📋 Nusxalash uchun ustiga bosing.\n📹 Endi video havolasini yuboring:",
+        parse_mode="HTML"
+    )
+    await state.set_state(S.waiting_for_video_link)
+    await c.answer()
 
 # -----------------------------
 # VIEWS HANDLERS (REFERAL ASOSIDA)
@@ -682,11 +728,12 @@ async def process_video_link(m: Message, state: FSMContext):
     if not link.startswith("http"):
         await m.answer("❗ Faqat video havolasini yuboring!")
         return
-    used_ref = users.get(uid, {}).get("used_ref_for_views", False)
+
     result = await send_to_neosmm(link, views)
     order_id = None
     if isinstance(result, dict):
         order_id = result.get("order") or result.get("id") or result.get("result")
+
     if order_id:
         orders.setdefault(str(order_id), {
             "user_id": uid,
@@ -697,15 +744,7 @@ async def process_video_link(m: Message, state: FSMContext):
             "api_response": result
         })
         save_json(ORDERS_FILE, orders)
-        if used_ref:
-            confirmed_refs = users.get(uid, {}).get("refs", [])
-            bonus_refs = users.get(uid, {}).get("bonus_refs", 0)
-            if bonus_refs > 0:
-                users[uid]["bonus_refs"] -= 1
-            elif confirmed_refs:
-                users[uid]["refs"] = confirmed_refs[:-1]
-            users[uid]["used_ref_for_views"] = False
-            save_json(USERS_FILE, users)
+
         await m.answer(f"✅ Buyurtma qabul qilindi!\nID: <code>{order_id}</code>\nKo'rishlar: <b>{views}</b>\nVideo: {link}", parse_mode="HTML")
         proof_msg = (
             f"📌 Yangi buyurtma qabul qilindi\n"
@@ -713,17 +752,12 @@ async def process_video_link(m: Message, state: FSMContext):
             f"Order ID: {order_id}\n"
             f"Link: {link}\n"
             f"Talab qilingan ko'rishlar: {views}\n"
-            f"Vaqt: {datetime.utcnow().isoformat()} UTC\n"
-            f"Bot tomonidan yuborildi — bu kanal orqali buyurtma holati kuzatiladi."
+            f"Vaqt: {datetime.utcnow().isoformat()} UTC"
         )
         try:
             await bot.send_message(PROOF_CHANNEL, proof_msg)
         except Exception:
-            for admin in ADMINS:
-                try:
-                    await bot.send_message(f"@{admin}", f"[PROOF POST FAILED] {proof_msg}")
-                except Exception:
-                    continue
+            pass
         try:
             asyncio.create_task(poll_order_status(str(order_id), uid, link, views))
         except Exception:
@@ -731,6 +765,7 @@ async def process_video_link(m: Message, state: FSMContext):
     else:
         err_info = result.get("error") if isinstance(result, dict) else str(result)
         await m.answer("❌ Buyurtma xatolik bilan yakunlandi!\nSabab: " + str(err_info), parse_mode="HTML")
+
     users.setdefault(uid, {})["await_video"] = False
     users[uid]["hashtags"] = []
     users[uid]["views"] = 0
