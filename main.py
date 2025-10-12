@@ -18,8 +18,8 @@ from aiogram.exceptions import TelegramBadRequest
 import os
 import asyncio
 from aiohttp import web
-
-
+from flask import Flask
+app = Flask(__name__)
 # -----------------------------
 # CONFIG
 # -----------------------------
@@ -1604,4 +1604,6 @@ async def start_health_server():
 
 if __name__ == "__main__":
     print("Bot ishga tushdi...")
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
     asyncio.run(dp.start_polling(bot))
