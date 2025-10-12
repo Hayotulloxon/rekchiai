@@ -1599,11 +1599,6 @@ if __name__ == '__main__':
     import nest_asyncio
     nest_asyncio.apply()
     import asyncio
-
-    async def on_startup():
-        await bot.set_webhook("https://rekchiai.onrender.com/webhook")
-
-    asyncio.get_event_loop().run_until_complete(on_startup())
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
     asyncio.run(dp.start_polling(bot))
