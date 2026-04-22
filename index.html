@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App - Monetag Rewarded</title>
+    <title>Mini App - Reklama Hisoblagichi</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,10 +22,24 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             max-width: 350px;
             width: 90%;
+            position: relative;
+        }
+        .counter-container {
+            background: #e8f0fe;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        #count-value {
+            font-size: 24px;
+            display: block;
         }
         h2 {
             color: #2c3e50;
             margin-bottom: 20px;
+            font-size: 20px;
         }
         #watch-btn {
             background: linear-gradient(135deg, #6e8efb, #a777e3);
@@ -38,6 +52,7 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
             transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
         }
         #watch-btn:active {
             transform: scale(0.95);
@@ -50,12 +65,17 @@
         }
     </style>
     
-    <!-- Yangi Monetag SDK Script -->
+    <!-- Monetag SDK Script -->
     <script src='//libtl.com/sdk.js' data-zone='10911940' data-sdk='show_10911940'></script>
 </head>
 <body>
 
     <div class="card">
+        <div class="counter-container">
+            Muvaffaqiyatli ko'rildi:
+            <span id="count-value">0</span>
+        </div>
+        
         <h2>Reklama Ko'rish</h2>
         <button id="watch-btn">Ko'rish</button>
         <p id="status"></p>
@@ -64,18 +84,25 @@
     <script>
         const watchBtn = document.getElementById('watch-btn');
         const statusText = document.getElementById('status');
+        const countDisplay = document.getElementById('count-value');
+
+        // LocalStorage orqali hisobni saqlab qolish (sahifa yangilansa ham o'chib ketmaydi)
+        let successCount = localStorage.getItem('adSuccessCount') || 0;
+        countDisplay.innerText = successCount;
 
         watchBtn.addEventListener('click', () => {
             statusText.innerText = "Reklama yuklanmoqda...";
             
-            // Monetag Rewarded Popup funksiyasi (SDK orqali taqdim etilgan)
             if (typeof show_10911940 === 'function') {
                 show_10911940('pop').then(() => {
-                    // Foydalanuvchi reklamani oxirigacha ko'rdi yoki yopdi
+                    // Muvaffaqiyatli ko'rilganda hisobni oshirish
+                    successCount++;
+                    localStorage.setItem('adSuccessCount', successCount);
+                    countDisplay.innerText = successCount;
+                    
                     statusText.innerText = "Muvaffaqiyatli! Mukofot berildi.";
-                    console.log('Ad finished');
+                    console.log('Ad finished successfully');
                 }).catch(e => {
-                    // Xatolik yuz berdi
                     statusText.innerText = "Xatolik: Reklama yuklanmadi.";
                     console.error('Ad error:', e);
                 });
