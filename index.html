@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App - Reklama Hisoblagichi</title>
+    <title>Mini App - Reklama va Taymer</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,7 +22,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             max-width: 350px;
             width: 90%;
-            position: relative;
         }
         .counter-container {
             background: #e8f0fe;
@@ -51,17 +50,23 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
             width: 100%;
         }
-        #watch-btn:active {
-            transform: scale(0.95);
+        #watch-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
         }
         #status {
             margin-top: 20px;
             font-size: 14px;
             color: #7f8c8d;
             min-height: 20px;
+        }
+        #timer-text {
+            font-weight: bold;
+            color: #e74c3c;
         }
     </style>
     
@@ -86,24 +91,39 @@
         const statusText = document.getElementById('status');
         const countDisplay = document.getElementById('count-value');
 
-        // LocalStorage orqali hisobni saqlab qolish (sahifa yangilansa ham o'chib ketmaydi)
         let successCount = localStorage.getItem('adSuccessCount') || 0;
         countDisplay.innerText = successCount;
+
+        function startTimer(seconds) {
+            watchBtn.disabled = true;
+            let timeLeft = seconds;
+            
+            const timerInterval = setInterval(() => {
+                statusText.innerHTML = `Keyingi reklama uchun <span id="timer-text">${timeLeft}</span> soniya kuting`;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    watchBtn.disabled = false;
+                    statusText.innerText = "Tayyor! Reklamani ko'rishingiz mumkin.";
+                }
+            }, 1000);
+        }
 
         watchBtn.addEventListener('click', () => {
             statusText.innerText = "Reklama yuklanmoqda...";
             
             if (typeof show_10911940 === 'function') {
                 show_10911940('pop').then(() => {
-                    // Muvaffaqiyatli ko'rilganda hisobni oshirish
+                    // Muvaffaqiyatli ko'rilganda
                     successCount++;
                     localStorage.setItem('adSuccessCount', successCount);
                     countDisplay.innerText = successCount;
                     
-                    statusText.innerText = "Muvaffaqiyatli! Mukofot berildi.";
-                    console.log('Ad finished successfully');
+                    // 20 soniyalik kutishni boshlash
+                    startTimer(20);
                 }).catch(e => {
-                    statusText.innerText = "Xatolik: Reklama yuklanmadi.";
+                    statusText.innerText = "Xatolik yuz berdi. Qaytadan urinib ko'ring.";
                     console.error('Ad error:', e);
                 });
             } else {
