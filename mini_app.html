@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App - Reklama</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        #watch-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #watch-btn:hover {
+            background-color: #0056b3;
+        }
+        #watch-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 1rem;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+    <!-- Monetag SDK Script -->
+    <script src="https://alwingulla.com/88/p.js" async></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Mini App</h1>
+        <button id="watch-btn">Ko'rish</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        const watchBtn = document.getElementById('watch-btn');
+        const statusText = document.getElementById('status');
+
+        watchBtn.addEventListener('click', () => {
+            statusText.innerText = "Reklama yuklanmoqda...";
+            
+            // Monetag Rewarded Popup funksiyasi
+            if (typeof show_10911940 === 'function') {
+                show_10911940('pop').then(() => {
+                    // Reklama muvaffaqiyatli ko'rildi yoki yopildi
+                    statusText.innerText = "Rahmat! Reklama ko'rildi.";
+                    alert("Siz mukofot oldingiz!");
+                }).catch(e => {
+                    // Xatolik yuz berdi
+                    console.error('Reklama xatosi:', e);
+                    statusText.innerText = "Reklama ko'rsatishda xatolik yuz berdi.";
+                });
+            } else {
+                statusText.innerText = "Reklama scripti hali yuklanmadi yoki bloklandi.";
+                console.error('show_10911940 funksiyasi topilmadi.');
+            }
+        });
+    </script>
+
+</body>
+</html>
