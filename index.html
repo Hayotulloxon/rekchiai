@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App - Reklama</title>
+    <title>Mini App - Monetag Rewarded</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,49 +12,51 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f2f5;
+            background-color: #f4f7f6;
         }
-        .container {
+        .card {
             text-align: center;
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 350px;
+            width: 90%;
         }
-        h1 {
-            color: #333;
-            margin-bottom: 1.5rem;
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
         }
         #watch-btn {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 15px 30px;
             font-size: 18px;
-            border-radius: 8px;
+            font-weight: bold;
+            border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        #watch-btn:hover {
-            background-color: #0056b3;
-        }
-        #watch-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        #watch-btn:active {
+            transform: scale(0.95);
         }
         #status {
-            margin-top: 1rem;
+            margin-top: 20px;
             font-size: 14px;
-            color: #666;
+            color: #7f8c8d;
+            min-height: 20px;
         }
     </style>
-    <!-- Monetag SDK Script -->
-    <script src="https://alwingulla.com/88/p.js" async></script>
+    
+    <!-- Yangi Monetag SDK Script -->
+    <script src='//libtl.com/sdk.js' data-zone='10911940' data-sdk='show_10911940'></script>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Mini App</h1>
+    <div class="card">
+        <h2>Reklama Ko'rish</h2>
         <button id="watch-btn">Ko'rish</button>
         <p id="status"></p>
     </div>
@@ -66,20 +68,19 @@
         watchBtn.addEventListener('click', () => {
             statusText.innerText = "Reklama yuklanmoqda...";
             
-            // Monetag Rewarded Popup funksiyasi
+            // Monetag Rewarded Popup funksiyasi (SDK orqali taqdim etilgan)
             if (typeof show_10911940 === 'function') {
                 show_10911940('pop').then(() => {
-                    // Reklama muvaffaqiyatli ko'rildi yoki yopildi
-                    statusText.innerText = "Rahmat! Reklama ko'rildi.";
-                    alert("Siz mukofot oldingiz!");
+                    // Foydalanuvchi reklamani oxirigacha ko'rdi yoki yopdi
+                    statusText.innerText = "Muvaffaqiyatli! Mukofot berildi.";
+                    console.log('Ad finished');
                 }).catch(e => {
                     // Xatolik yuz berdi
-                    console.error('Reklama xatosi:', e);
-                    statusText.innerText = "Reklama ko'rsatishda xatolik yuz berdi.";
+                    statusText.innerText = "Xatolik: Reklama yuklanmadi.";
+                    console.error('Ad error:', e);
                 });
             } else {
-                statusText.innerText = "Reklama scripti hali yuklanmadi yoki bloklandi.";
-                console.error('show_10911940 funksiyasi topilmadi.');
+                statusText.innerText = "SDK yuklanmadi. Iltimos, sahifani yangilang.";
             }
         });
     </script>
