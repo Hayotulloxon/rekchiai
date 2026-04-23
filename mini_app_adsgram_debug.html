@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App - Adsgram Debug</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+            overflow: hidden;
+        }
+        .card {
+            text-align: center;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 350px;
+            width: 90%;
+            z-index: 1;
+        }
+        .counter-container {
+            background: #e8f0fe;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        #count-value {
+            font-size: 24px;
+            display: block;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        /* Adsgram Task Styling */
+        .task {
+            --adsgram-task-button-width: 100%;
+            --adsgram-task-font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .custom-btn {
+            background: linear-gradient(135deg, #0088cc, #00a2ff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
+            width: 100%;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+            min-height: 20px;
+        }
+        #timer-text {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .hidden {
+            display: none;
+        }
+
+        /* Notification Toast Styles */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .toast {
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+            pointer-events: auto;
+        }
+        .toast.error { background-color: #e74c3c; }
+        .toast.success { background-color: #2ecc71; }
+        .toast.info { background-color: #3498db; }
+
+        @keyframes slideIn {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+    
+    <!-- Adsgram Task SDK Script -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+</head>
+<body>
+
+    <div id="notification-container"></div>
+
+    <div class="card">
+        <div class="counter-container">
+            Muvaffaqiyatli ko'rildi:
+            <span id="count-value">0</span>
+        </div>
+        
+        <h2>Adsgram Task</h2>
+
+        <div id="task-wrapper">
+            <adsgram-task
+               data-block-id='task-28471'
+               class="task"
+               id="my-task"
+               data-debug="true"
+            >
+                <div slot="button" class="custom-btn">Ko'rish</div>
+            </adsgram-task>
+        </div>
+
+        <p id="status"></p>
+    </div>
+
+    <script>
+        const taskElement = document.getElementById('my-task');
+        const taskWrapper = document.getElementById('task-wrapper');
+        const statusText = document.getElementById('status');
+        const countDisplay = document.getElementById('count-value');
+        const notificationContainer = document.getElementById('notification-container');
+
+        let successCount = localStorage.getItem('adSuccessCount') || 0;
+        countDisplay.innerText = successCount;
+
+        // Bildirishnoma ko'rsatish funksiyasi
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            notificationContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.5s forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        // SDK yuklanganini tekshirish
+        window.onload = () => {
+            if (window.Adsgram || document.querySelector('adsgram-task')) {
+                showToast("Adsgram SDK muvaffaqiyatli yuklandi", "success");
+            } else {
+                showToast("Adsgram SDK yuklanishida xatolik!", "error");
+            }
+        };
+
+        function startTimer(seconds) {
+            taskWrapper.classList.add('hidden');
+            let timeLeft = seconds;
+            
+            const timerInterval = setInterval(() => {
+                statusText.innerHTML = `Keyingi reklama uchun <span id="timer-text">${timeLeft}</span> soniya kuting`;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    taskWrapper.classList.remove('hidden');
+                    statusText.innerText = "Tayyor! Reklamani ko'rishingiz mumkin.";
+                    showToast("Kutish vaqti tugadi, yangi reklama tayyor", "info");
+                }
+            }, 1000);
+        }
+
+        // Adsgram Task hodisalari
+        taskElement.addEventListener('reward', () => {
+            successCount++;
+            localStorage.setItem('adSuccessCount', successCount);
+            countDisplay.innerText = successCount;
+            
+            statusText.innerText = "Muvaffaqiyatli! Mukofot berildi.";
+            showToast("Vazifa bajarildi! Mukofot hisoblandi.", "success");
+            
+            startTimer(20);
+        });
+
+        taskElement.addEventListener('onError', (e) => {
+            const errorMsg = e.detail?.description || "Noma'lum xatolik";
+            statusText.innerText = "Xatolik yuz berdi.";
+            showToast(`SDK Xatosi: ${errorMsg}`, "error");
+            console.error('Adsgram Task Error:', e);
+        });
+
+        taskElement.addEventListener('onBannerNotFound', () => {
+            statusText.innerText = "Hozircha reklama topilmadi.";
+            showToast("Reklama topilmadi (Banner Not Found)", "info");
+        });
+
+        taskElement.addEventListener('onTooLongSession', () => {
+            showToast("Sessiya muddati tugadi. Ilovani qayta ishga tushiring.", "error");
+        });
+    </script>
+
+</body>
+</html>
