@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App - Reklama va Taymer</title>
+    <title>Mini App - Adsgram Reklama</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -41,7 +41,7 @@
             font-size: 20px;
         }
         #watch-btn {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: linear-gradient(135deg, #0088cc, #00a2ff);
             color: white;
             border: none;
             padding: 15px 30px;
@@ -49,7 +49,7 @@
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
             transition: all 0.2s;
             width: 100%;
         }
@@ -70,8 +70,8 @@
         }
     </style>
     
-    <!-- Monetag SDK Script -->
-    <script src='//libtl.com/sdk.js' data-zone='10911940' data-sdk='show_10911940'></script>
+    <!-- Adsgram SDK Script -->
+    <script src="https://sad.adsgram.ai/js/adsgram-ad-sdk.js"></script>
 </head>
 <body>
 
@@ -81,7 +81,7 @@
             <span id="count-value">0</span>
         </div>
         
-        <h2>Reklama Ko'rish</h2>
+        <h2>Adsgram Reklama</h2>
         <button id="watch-btn">Ko'rish</button>
         <p id="status"></p>
     </div>
@@ -90,6 +90,9 @@
         const watchBtn = document.getElementById('watch-btn');
         const statusText = document.getElementById('status');
         const countDisplay = document.getElementById('count-value');
+
+        // Adsgram Controllerini sozlash
+        const AdController = window.Adsgram.init({ blockId: "28471" });
 
         let successCount = localStorage.getItem('adSuccessCount') || 0;
         countDisplay.innerText = successCount;
@@ -113,22 +116,24 @@
         watchBtn.addEventListener('click', () => {
             statusText.innerText = "Reklama yuklanmoqda...";
             
-            if (typeof show_10911940 === 'function') {
-                show_10911940('pop').then(() => {
-                    // Muvaffaqiyatli ko'rilganda
-                    successCount++;
-                    localStorage.setItem('adSuccessCount', successCount);
-                    countDisplay.innerText = successCount;
-                    
-                    // 20 soniyalik kutishni boshlash
-                    startTimer(20);
-                }).catch(e => {
-                    statusText.innerText = "Xatolik yuz berdi. Qaytadan urinib ko'ring.";
-                    console.error('Ad error:', e);
-                });
-            } else {
-                statusText.innerText = "SDK yuklanmadi. Iltimos, sahifani yangilang.";
-            }
+            // Adsgram reklamani ko'rsatish
+            AdController.show().then((result) => {
+                // Foydalanuvchi reklamani oxirigacha ko'rdi
+                successCount++;
+                localStorage.setItem('adSuccessCount', successCount);
+                countDisplay.innerText = successCount;
+                
+                // 20 soniyalik kutishni boshlash
+                startTimer(20);
+            }).catch((result) => {
+                // Xatolik yoki foydalanuvchi reklamani yopib yubordi
+                if (result.error) {
+                    statusText.innerText = "Xatolik: Reklama yuklanmadi.";
+                    console.error('Adsgram error:', result.description);
+                } else {
+                    statusText.innerText = "Reklama to'liq ko'rilmadi.";
+                }
+            });
         });
     </script>
 
